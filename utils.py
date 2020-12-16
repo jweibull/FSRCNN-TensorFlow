@@ -9,7 +9,7 @@ import subprocess
 import io
 from random import randrange, shuffle
 
-import tensorflow as tf
+import tensorflow.compat.v1 as tf
 from PIL import Image
 import numpy as np
 import multiprocessing
