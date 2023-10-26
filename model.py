@@ -16,6 +16,7 @@ import tensorflow.compat.v1 as tf
 
 from PIL import Image
 import pdb
+import shutil
 
 # Based on http://mmlab.ie.cuhk.edu.hk/projects/FSRCNN.html
 class Model(object):
@@ -143,6 +144,8 @@ class Model(object):
     print("Start Average: [%.6f], End Average: [%.6f], Improved: [%.2f%%]" \
       % (start_average, end_average, 100 - (100*end_average/start_average)))
 
+    self.save_final_model(counter)
+
     # Linux desktop notification when training has been completed
     # title = "Training complete - FSRCNN"
     # notification = "{}-{}-{} done training after {} epochs".format(self.image_size, self.label_size, self.stride, self.epoch);
@@ -179,6 +182,26 @@ class Model(object):
     self.saver.save(self.sess,
                     os.path.join(self.model_dir, model_name),
                     global_step=step)
+
+  def save_final_model(self, step):
+    model_name = self.model.name + ".model"
+
+    if not os.path.exists(self.model_dir):
+        os.makedirs(self.model_dir)
+
+    save_path = os.path.join(self.model_dir, model_name)
+
+    # Delete the directory if it already exists
+    if os.path.exists(save_path):
+      shutil.rmtree(save_path)
+
+    tf.saved_model.simple_save(
+        session=self.sess,
+        export_dir=save_path,
+        inputs={"input": self.images},
+        outputs={"output": self.pred}
+    )
+    print("Model saved in SavedModel format at:", save_path)
 
   def load(self):
     print(" [*] Reading checkpoints...")
